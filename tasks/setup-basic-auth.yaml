@@ -4,6 +4,13 @@
 # use-case for doing this is to make Postman easier to use during development
 # and testing because there will be no need to get a token to use the API.
 
+- name: Set credentials to use
+  set_fact:
+    bigiq_onboard_credentials_password: "{{ bigiq_onboard_new_admin_password }}"
+  when: >
+    bigiq_onboard_old_admin_password|default(False) and
+    bigiq_onboard_new_admin_password|default(False)
+    
 - name: Get new authentication token. Password can be changed after BIGIQ launch.
   uri:
     url: "https://{{ provider.server }}:{{ provider.server_port }}/mgmt/shared/authn/login"
