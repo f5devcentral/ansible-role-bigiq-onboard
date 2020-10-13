@@ -37,6 +37,36 @@
       password: "{{ bigiq_onboard_password }}"
     body_format: json
   register: authtokenonb
+  when:
+    - system_status.json.build is match("^\D+.[7-].[0-].*$") or
+      system_status.json.build is match("^\D+.[6-].[0-1].*$") or
+      system_status.json.build is match("^\D+.[7-].[1-].*$")
+
+# Due to TMOS change in 8.0, in case the admin password been reset already (re-try)
+- name: Get authentication token - after admin password initial reset
+  uri:
+    url: "https://{{ provider.server }}:{{ provider.server_port }}/mgmt/shared/authn/login"
+    method: POST
+    timeout: "{{ bigiq_onboard_timeout }}"
+    validate_certs: "{{ bigiq_onboard_validate_certs }}"
+    body:
+      username: "{{ bigiq_onboard_user }}"
+      password: "{{ bigiq_onboard_new_admin_password }}"
+    body_format: json
+  register: authtokenonb
+  when: #if password not expired and BIG-IQ > 7.1
+    - system_status.json.build is not match("^\D+.[7-].[0-].*$") and
+      system_status.json.build is not match("^\D+.[6-].[0-1].*$") and
+      system_status.json.build is not match("^\D+.[7-].[1-].*$")
+
+# Due to TMOS change in 8.0, need to set new admin password which is expired by default
+- name: Reset expired password starting BIG-IQ 8.0
+  include_tasks: setup-reset-expired-password8_0.yaml
+  when:
+    - authtokenonb.json.expired|bool
+    - system_status.json.build is not match("^\D+.[7-].[0-].*$") and
+      system_status.json.build is not match("^\D+.[6-].[0-1].*$") and
+      system_status.json.build is not match("^\D+.[7-].[1-].*$")
 
 - name: Set the token fact if authentication succeeded
   set_fact:
