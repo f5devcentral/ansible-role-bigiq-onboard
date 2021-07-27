@@ -39,8 +39,7 @@ your ``provider`` module parameter.
     bigiq_onboard_old_admin_password: admin
 
 Parameters used to change the default admin and root accounts on the BIG-IQ during
-onboarding. If you do not want to change the passwords, leave the ``new`` variables
-empty.
+onboarding. It is required to change the passwords with BIG-IQ version 8 and above.
 
     bigiq_onboard_node_type: cm
 
